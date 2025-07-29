@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "be72cbae--c2e-5-49-b0-9-0dc-dc31bc4b1afc",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 48,
+  "height": 48,
+  "platformSettings": {},
+  "subMetas": {
+    "logo_car": {
+      "ver": "1.0.6",
+      "uuid": "77cf4361--69d-3-42-21-b-220-b7eb5e2971eb",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "be72cbae--c2e-5-49-b0-9-0dc-dc31bc4b1afc",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 48,
+      "height": 48,
+      "rawWidth": 48,
+      "rawHeight": 48,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

@@ -1,0 +1,1 @@
+module.exports = [1,["c0on5vE6xGdJCH5A6BJy+X"],["_textureSetter"],["cc.SpriteFrame"],0,[{"name":"icon_rank3","rect":[0,0,56,58],"offset":[0,0],"originalSize":[56,58],"capInsets":[0,0,0,0]}],[0],0,[0],[0],[0]];
