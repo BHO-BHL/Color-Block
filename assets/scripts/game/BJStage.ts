@@ -273,7 +273,7 @@ export default class BJStage extends cc.Component {
             } else {
                 dir = data.dir
             }
-            blockComp.init(i, typeIndex, colorIndex, data.x, data.y, dir)
+            blockComp.init(i, typeIndex, colorIndex, data.x, data.y, dir, data.ice)
         }
     }
 
@@ -579,6 +579,56 @@ export default class BJStage extends cc.Component {
                 this.blockClearNum += 1
                 block.setActive(false)
                 block.hideDir()
+
+                const blockCompArr = this.blockRootNode.getComponentsInChildren(BJBlock)
+                blockCompArr.forEach(b => {
+                    if (b.ice > 0) {
+                        const iceEff = PoolManager.instance.getNode('eff_ice', b.node)
+                        switch (b.typeIndex) {
+                            case 1:
+                            case 2:
+                            case 3:
+                            case 4:
+                            case 5:
+                            case 6:
+                            case 13:
+                            case 14:
+                            case 15:
+                            case 16:
+                                iceEff.x = b.node.width / 2
+                                iceEff.y = b.node.height / 2
+                                break
+                            case 7:
+                            case 9:
+                            case 11:
+                            case 18:
+                            case 20:
+                                iceEff.x = (b.node.width - BLOCK_SIZE) / 2
+                                iceEff.y = (b.node.height - BLOCK_SIZE) / 2
+                                break
+                            case 8:
+                            case 10:
+                            case 12:
+                            case 17:
+                            case 19:
+                                iceEff.x = (b.node.width + BLOCK_SIZE) / 2
+                                iceEff.y = (b.node.height + BLOCK_SIZE) / 2
+                                break
+                            case 21:
+                                iceEff.x = (b.node.width - BLOCK_SIZE * 2) / 2
+                                iceEff.y = (b.node.height - BLOCK_SIZE * 2) / 2
+                                break
+                            case 22:
+                                iceEff.x = (b.node.width + BLOCK_SIZE * 2) / 2
+                                iceEff.y = (b.node.height + BLOCK_SIZE * 2) / 2
+                                break;
+                        }
+                        const iceParticle = iceEff.getComponent(cc.ParticleSystem)
+                        iceParticle.resetSystem()
+
+                        b.setCount(b.ice - 1);
+                    }
+                })
 
                 if (DataManager.instance.level == 1) {
                     this.guideStep += 1

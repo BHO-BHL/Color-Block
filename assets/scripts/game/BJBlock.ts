@@ -22,8 +22,10 @@ export default class BJBlock extends cc.Component {
     xIndex: number = -1
     yIndex: number = -1
     dir: number = -1
+    ice: number = -1
     maskNode: cc.Node = null
     dirNode: cc.Node = null
+    iceNode: cc.Node = null
     sprite: cc.Sprite = null
     material: cc.Material = null
     materialActive: cc.Material = null
@@ -31,6 +33,7 @@ export default class BJBlock extends cc.Component {
 
 
     private isSelected: boolean = false;
+    private isLocked: boolean = false;
     private touchOffset: cc.Vec2 = cc.Vec2.ZERO;
     private originalPos: cc.Vec2 = cc.Vec2.ZERO;
     private initPos: cc.Vec2 = cc.Vec2.ZERO;
@@ -40,6 +43,7 @@ export default class BJBlock extends cc.Component {
     protected onLoad(): void {
         this.maskNode = this.node.getChildByName('mask')
         this.dirNode = this.node.getChildByName('icon_dir')
+        this.iceNode = this.node.getChildByName('icon_ice')
         this.sprite = this.maskNode.getChildByName('icon').getComponent(cc.Sprite)
         this.colliderComp = this.node.getComponent(cc.BoxCollider)
         const materials = this.sprite.getMaterials()
@@ -53,15 +57,19 @@ export default class BJBlock extends cc.Component {
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
     }
 
-    init(index: number, typeIndex: number, colorIndex: number, xIndex: number, yIndex: number, dir: number) {
+    init(index: number, typeIndex: number, colorIndex: number, xIndex: number, yIndex: number, dir: number,
+        ice: number
+    ) {
         this.index = index
         this.typeIndex = typeIndex
         this.colorIndex = colorIndex
         this.xIndex = xIndex
         this.yIndex = yIndex
         this.dir = dir
+        this.ice = ice
         this.initSprite()
         this.initDir()
+        this.initIce()
         // 初始化位置信息
         this.initPos = cc.v2(this.node.position.clone());
     }
@@ -265,6 +273,76 @@ export default class BJBlock extends cc.Component {
         this.dirNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Up_Down_1_${this.dir}`)
     }
 
+    initIce() {
+        cc.log(this.ice)
+        if (this.ice == 0) {
+            this.iceNode.active = false;
+            this.isLocked = false;
+        } else {
+            this.iceNode.active = true;
+            this.isLocked = true;
+            const countNode = this.iceNode.getChildByName("count");
+            countNode.getComponent(cc.Label).string = `${this.ice}`;
+            this.iceNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`);
+            this.iceNode.color = cc.Color.BLACK;
+            this.iceNode.opacity = 150;
+            switch (this.typeIndex) {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                    countNode.x = this.node.width / 2
+                    countNode.y = this.node.height / 2
+                    break
+                case 7:
+                case 9:
+                case 11:
+                case 18:
+                case 20:
+                    countNode.x = (this.node.width - BLOCK_SIZE) / 2
+                    countNode.y = (this.node.height - BLOCK_SIZE) / 2
+                    break
+                case 8:
+                case 10:
+                case 12:
+                case 17:
+                case 19:
+                    countNode.x = (this.node.width + BLOCK_SIZE) / 2
+                    countNode.y = (this.node.height + BLOCK_SIZE) / 2
+                    break
+                case 21:
+                    countNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                    countNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                    break
+                case 22:
+                    countNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                    countNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                    break
+            }
+        }
+    }
+
+    setCount(count: number) {
+        this.ice = count;
+        const countNode = this.iceNode.getChildByName("count");
+        countNode.getComponent(cc.Label).string = `${this.ice}`;
+
+        if (this.ice <= 0) {
+            this.hideIce();
+            this.isLocked = false;
+        }
+    }
+
+    hideIce() {
+        this.iceNode.active = false
+    }
+
     changeColor() {
         this.sprite.spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`)
     }
@@ -280,6 +358,7 @@ export default class BJBlock extends cc.Component {
 
     // 触摸开始
     private onTouchStart(event: cc.Event.EventTouch) {
+        if (this.isLocked) return;
         // if (DataManager.instance.currentSelectBlock) return
         if (DataManager.instance.status == ENUM_GAME_STATUS.UNRUNING) return
 
@@ -345,6 +424,7 @@ export default class BJBlock extends cc.Component {
 
     // 动态调整边界的移动逻辑
     private onTouchMove(event: cc.Event.EventTouch) {
+        if (this.isLocked) return;
         if (DataManager.instance.status == ENUM_GAME_STATUS.UNRUNING) return
         if (DataManager.instance.currentSelectBlock == null) return
         if (!DataManager.instance.currentSelectBlock.isSelected) return;
