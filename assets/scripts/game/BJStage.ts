@@ -273,7 +273,15 @@ export default class BJStage extends cc.Component {
             } else {
                 dir = data.dir
             }
-            blockComp.init(i, typeIndex, colorIndex, data.x, data.y, dir, data.ice)
+            blockComp.init({
+                index: i,
+                typeIndex,
+                colorIndex,
+                x: data.x,
+                y: data.y,
+                dir,
+                ice: data.ice
+            })
         }
     }
 

@@ -13,6 +13,15 @@ import BJStage from "./BJStage";
 
 const { ccclass, property } = cc._decorator;
 
+export type BlockData = {
+    index: number;
+    typeIndex: number;
+    colorIndex: number;
+    x: number;
+    y: number;
+    dir: number;
+    ice?: number;
+}
 @ccclass
 export default class BJBlock extends cc.Component {
 
@@ -57,16 +66,14 @@ export default class BJBlock extends cc.Component {
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
     }
 
-    init(index: number, typeIndex: number, colorIndex: number, xIndex: number, yIndex: number, dir: number,
-        ice: number
-    ) {
-        this.index = index
-        this.typeIndex = typeIndex
-        this.colorIndex = colorIndex
-        this.xIndex = xIndex
-        this.yIndex = yIndex
-        this.dir = dir
-        this.ice = ice
+    init(data: BlockData) {
+        this.index = data.index
+        this.typeIndex = data.typeIndex
+        this.colorIndex = data.colorIndex
+        this.xIndex = data.x
+        this.yIndex = data.y
+        this.dir = data.dir
+        this.ice = data.ice ?? 0;
         this.initSprite()
         this.initDir()
         this.initIce()
@@ -274,7 +281,6 @@ export default class BJBlock extends cc.Component {
     }
 
     initIce() {
-        cc.log(this.ice)
         if (this.ice == 0) {
             this.iceNode.active = false;
             this.isLocked = false;
