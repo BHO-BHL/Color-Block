@@ -43,6 +43,7 @@ export const ENUM_RESOURCE_TYPE = ([
     { content: cc.AudioClip, path: 'audio', type: 'audio', ratio: 0.3 },
     { content: cc.Prefab, path: 'prefab', type: 'prefab', ratio: 0.3 },
     { content: cc.SpriteFrame, path: 'sprite', type: 'sprite', ratio: 0.2 },
+    { content: cc.JsonAsset, path: 'data', type: 'json', ratio: 0.2 },
     { content: cc.TextAsset, path: 'txt', type: 'txt', ratio: 0.2 },
 ])
 

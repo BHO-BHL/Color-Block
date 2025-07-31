@@ -11,6 +11,7 @@ import { getRandom } from "../BJUtils";
 import AudioManager from "../manager/BJAudioManager";
 import DataManager, { BLOCK_COLOR, BLOCK_GAP, BLOCK_SIZE } from "../manager/BJDataManager";
 import PoolManager from "../manager/BJPoolManager";
+import BJResourceManager from "../manager/BJResourceManager";
 import ResourceManager from "../manager/BJResourceManager";
 import BJBlock from "./BJBlock";
 import BJExit from "./BJExit";
@@ -57,11 +58,25 @@ export default class BJStage extends cc.Component {
         this.toggleSkillTip(false)
 
         this.levelLabel.string = `第${DataManager.instance.level}关`
+        let dataLevel = BJResourceManager.instance.getJson("level");
 
-        let levelConfig = BJLevelConfig[DataManager.instance.level - 1]
+        if (dataLevel && !Array.isArray(dataLevel)) {
+            dataLevel = Object.values(dataLevel);
+        }
+
+        let levelConfig = null;
+        if (Array.isArray(dataLevel)) {
+            levelConfig = dataLevel.find((item: any) => item.level == DataManager.instance.level)
+                || dataLevel[DataManager.instance.level - 1];
+            // levelConfig = BJLevelConfig[0];          //BJLevelConfig để lấy data test
+        } else {
+            levelConfig = null;
+        }
+
+        cc.log('levelConfig:', levelConfig);
         if (!levelConfig) {
-            const tempLevel = getRandom(10, BJLevelConfig.length - 1)
-            levelConfig = BJLevelConfig[tempLevel]
+            const tempLevel = getRandom(0, dataLevel.length - 1)
+            levelConfig = dataLevel[tempLevel]
         }
 
         if (DataManager.instance.level == 1) {

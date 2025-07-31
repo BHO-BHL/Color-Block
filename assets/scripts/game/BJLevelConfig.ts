@@ -214,49 +214,57 @@ export const BJLevelConfig = [
                 "icon": "PA_Grid_9_5",
                 "x": 1,
                 "y": 0,
-                "dir": "0"
+                "dir": "0",
+                "ice": 1
             },
             {
                 "icon": "PA_Grid_8_9",
                 "x": 3,
                 "y": 0,
-                "dir": "0"
+                "dir": "0",
+                "ice": 1
             },
             {
                 "icon": "PA_Grid_4_9",
                 "x": 0,
                 "y": 2,
-                "dir": "0"
+                "dir": "0",
+                "ice": 0
             },
             {
                 "icon": "PA_Grid_3_4",
                 "x": 1,
                 "y": 2,
-                "dir": "0"
+                "dir": "0",
+                "ice": 1
             },
             {
                 "icon": "PA_Grid_4_5",
                 "x": 5,
                 "y": 2,
-                "dir": "0"
+                "dir": "0",
+                "ice": 2
             },
             {
                 "icon": "PA_Grid_3_6",
                 "x": 2,
                 "y": 3,
-                "dir": "0"
+                "dir": "0",
+                "ice": 0
             },
             {
                 "icon": "PA_Grid_3_1",
                 "x": 0,
                 "y": 4,
-                "dir": "0"
+                "dir": "0",
+                "ice": 1
             },
             {
                 "icon": "PA_Grid_3_3",
                 "x": 3,
                 "y": 4,
-                "dir": "0"
+                "dir": "0",
+                "ice": 0
             }
         ],
         "exits": [
@@ -302,9 +310,9 @@ export const BJLevelConfig = [
         rowNum: 5,
         colNum: 4,
         blocks: [
-            { icon: 'PA_Grid_8_2', x: 1, y: 0, "dir": 0 },
+            { icon: 'PA_Grid_8_2', x: 1, y: 0, "dir": 0, bomb: 10 },
             { icon: 'PA_Grid_9_1', x: 0, y: 2, "dir": 0 },
-            { icon: 'PA_Grid_4_5', x: 1, y: 3, "dir": 0 },
+            { icon: 'PA_Grid_4_5', x: 1, y: 3, "dir": 0, bomb: 15 },
             { icon: 'PA_Grid_2_6', x: 0, y: 0, "dir": 0 },
         ],
         exits: [
