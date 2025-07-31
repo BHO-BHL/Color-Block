@@ -5,11 +5,13 @@
  * @Last Modified time: 2025-06-07 13:24:23
  */
 
-import { ENUM_AUDIO_CLIP, ENUM_GAME_STATUS } from "../BJEnum";
+import { ENUM_AUDIO_CLIP, ENUM_GAME_STATUS, ENUM_UI_TYPE } from "../BJEnum";
 import AudioManager from "../manager/BJAudioManager";
 import DataManager, { BLOCK_GAP, BLOCK_SIZE } from "../manager/BJDataManager";
 import ResourceManager from "../manager/BJResourceManager";
 import BJStage from "./BJStage";
+import PoolManager from "../manager/BJPoolManager";
+import StaticInstance from "../BJStaticInstance";
 
 const { ccclass, property } = cc._decorator;
 
@@ -19,8 +21,9 @@ export type BlockData = {
     colorIndex: number;
     x: number;
     y: number;
-    dir: number;
+    dir?: number;
     ice?: number;
+    bomb?: number;
 }
 @ccclass
 export default class BJBlock extends cc.Component {
@@ -32,8 +35,10 @@ export default class BJBlock extends cc.Component {
     yIndex: number = -1
     dir: number = -1
     ice: number = -1
+    bomb: number = -1
     maskNode: cc.Node = null
     dirNode: cc.Node = null
+    bombNode: cc.Node = null
     iceNode: cc.Node = null
     sprite: cc.Sprite = null
     material: cc.Material = null
@@ -53,6 +58,7 @@ export default class BJBlock extends cc.Component {
         this.maskNode = this.node.getChildByName('mask')
         this.dirNode = this.node.getChildByName('icon_dir')
         this.iceNode = this.node.getChildByName('icon_ice')
+        this.bombNode = this.node.getChildByName('icon_bomb')
         this.sprite = this.maskNode.getChildByName('icon').getComponent(cc.Sprite)
         this.colliderComp = this.node.getComponent(cc.BoxCollider)
         const materials = this.sprite.getMaterials()
@@ -74,9 +80,11 @@ export default class BJBlock extends cc.Component {
         this.yIndex = data.y
         this.dir = data.dir
         this.ice = data.ice ?? 0;
+        this.bomb = data.bomb ?? 0;
         this.initSprite()
         this.initDir()
         this.initIce()
+        this.initBomb()
         // 初始化位置信息
         this.initPos = cc.v2(this.node.position.clone());
     }
@@ -280,6 +288,10 @@ export default class BJBlock extends cc.Component {
         this.dirNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Up_Down_1_${this.dir}`)
     }
 
+    hideDir() {
+        this.dirNode.active = false
+    }
+
     initIce() {
         if (this.ice == 0) {
             this.iceNode.active = false;
@@ -334,7 +346,7 @@ export default class BJBlock extends cc.Component {
         }
     }
 
-    setCount(count: number) {
+    setCountIce(count: number) {
         this.ice = count;
         const countNode = this.iceNode.getChildByName("count");
         countNode.getComponent(cc.Label).string = `${this.ice}`;
@@ -349,6 +361,120 @@ export default class BJBlock extends cc.Component {
         this.iceNode.active = false
     }
 
+    initBomb() {
+        if (this.bomb == 0) {
+            this.bombNode.active = false;
+            this.stopBombCountdown();
+        } else {
+            this.bombNode.active = true;
+            const countNode = this.bombNode.getChildByName("count");
+            countNode.getComponent(cc.Label).string = `${this.bomb}`;
+            this.startBombCountdown();
+            switch (this.typeIndex) {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                    this.bombNode.x = this.node.width / 2
+                    this.bombNode.y = this.node.height / 2
+                    break
+                case 7:
+                case 9:
+                case 11:
+                case 18:
+                case 20:
+                    this.bombNode.x = (this.node.width - BLOCK_SIZE) / 2
+                    this.bombNode.y = (this.node.height - BLOCK_SIZE) / 2
+                    break
+                case 8:
+                case 10:
+                case 12:
+                case 17:
+                case 19:
+                    this.bombNode.x = (this.node.width + BLOCK_SIZE) / 2
+                    this.bombNode.y = (this.node.height + BLOCK_SIZE) / 2
+                    break
+                case 21:
+                    this.bombNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                    this.bombNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                    break
+                case 22:
+                    this.bombNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                    this.bombNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                    break
+            }
+        }
+    }
+
+    private bombTimer: number = null;
+    startBombCountdown() {
+        // Nếu đã có timer thì không tạo mới
+        if (this.bombTimer !== null) return;
+        this.bombTimer = setInterval(() => {
+            this.bomb -= 1;
+            this.setCountBomb(this.bomb);
+            if (this.bomb <= 0) {
+                StaticInstance.gameManager.onGameOver(ENUM_UI_TYPE.REVIVE_TIMER)
+
+                const bombEff = PoolManager.instance.getNode('eff_bomb', this.node)
+                bombEff.setPosition(this.bombNode.position);
+                const bombParticle = bombEff.getComponent(cc.ParticleSystem);
+                bombParticle.resetSystem();
+
+                // Xóa node effect sau khi particle kết thúc
+                this.scheduleOnce(() => {
+                    bombEff.destroy();
+                }, bombParticle.duration + bombParticle.life);
+
+                this.stopBombCountdown();
+            }
+        }, 1000);
+    }
+
+    stopBombCountdown() {
+        if (this.bombTimer !== null) {
+            clearInterval(this.bombTimer);
+            this.bombTimer = null;
+            this.hideBomb();
+        }
+    }
+
+    private bombPaused: boolean = false;
+    pauseBombCountdown() {
+        if (this.bombTimer !== null && !this.bombPaused) {
+            clearInterval(this.bombTimer);
+            this.bombTimer = null;
+            this.bombPaused = true;
+        }
+    }
+
+    resumeBombCountdown() {
+        if (this.bombPaused && this.bomb > 0 && this.bombTimer === null) {
+            this.bombPaused = false;
+            this.startBombCountdown();
+        }
+    }
+
+    setCountBomb(count: number) {
+        this.bomb = count;
+        const countNode = this.bombNode.getChildByName("count");
+        countNode.getComponent(cc.Label).string = `${this.bomb}`;
+
+        if (this.bomb <= 0) {
+            this.hideBomb();
+        }
+    }
+
+    hideBomb() {
+        this.bombNode.active = false
+    }
+
     changeColor() {
         this.sprite.spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`)
     }
@@ -356,10 +482,6 @@ export default class BJBlock extends cc.Component {
     setActive(bool: boolean) {
         const targetMaterial = bool ? this.materialActive : this.material
         this.sprite.setMaterial(0, targetMaterial);
-    }
-
-    hideDir() {
-        this.dirNode.active = false
     }
 
     // 触摸开始
@@ -381,6 +503,7 @@ export default class BJBlock extends cc.Component {
         // 技能
         if (DataManager.instance.currentSkillIndex == 0) {
             AudioManager.instance.playSound(ENUM_AUDIO_CLIP.DING)
+            StaticInstance.gameManager.onGameResume()
             block.colorIndex = DataManager.instance.currentColorIndex += 1
             this.changeColor()
             DataManager.instance.currentSkillIndex = -1
@@ -388,6 +511,7 @@ export default class BJBlock extends cc.Component {
             return
         } else if (DataManager.instance.currentSkillIndex == 1) {
             AudioManager.instance.playSound(ENUM_AUDIO_CLIP.BLOCK_OUT)
+            StaticInstance.gameManager.onGameResume()
             block.node.zIndex = 888
             block.isExited = true
             BJStage.ins.updateBlockLimitData(block, false)
@@ -399,6 +523,7 @@ export default class BJBlock extends cc.Component {
             }
             cc.tween(block.node).then(act).call(() => {
                 block.node.destroy()
+                this.stopBombCountdown()
             }).start()
             BJStage.ins.blockClearNum += 1
             DataManager.instance.currentSkillIndex = -1

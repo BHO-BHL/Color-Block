@@ -47,6 +47,7 @@ export default class BJGameManager extends cc.Component {
 
     onGameRevive() {
         this.stageComp.onRevive()
+        this.stageComp.resumeBomb()
     }
 
     onGameSkill() {
@@ -59,10 +60,12 @@ export default class BJGameManager extends cc.Component {
 
     onGamePause() {
         this.stageComp.stopTimer()
+        this.stageComp.pauseBomb()
     }
 
     onGameResume() {
         this.stageComp.startTimer()
+        this.stageComp.resumeBomb()
     }
 
     onGameOver(ui: ENUM_UI_TYPE, duration: number = 0.8) {

@@ -280,7 +280,8 @@ export default class BJStage extends cc.Component {
                 x: data.x,
                 y: data.y,
                 dir,
-                ice: data.ice
+                ice: data.ice,
+                bomb: data.bomb
             })
         }
     }
@@ -592,49 +593,16 @@ export default class BJStage extends cc.Component {
                 blockCompArr.forEach(b => {
                     if (b.ice > 0) {
                         const iceEff = PoolManager.instance.getNode('eff_ice', b.node)
-                        switch (b.typeIndex) {
-                            case 1:
-                            case 2:
-                            case 3:
-                            case 4:
-                            case 5:
-                            case 6:
-                            case 13:
-                            case 14:
-                            case 15:
-                            case 16:
-                                iceEff.x = b.node.width / 2
-                                iceEff.y = b.node.height / 2
-                                break
-                            case 7:
-                            case 9:
-                            case 11:
-                            case 18:
-                            case 20:
-                                iceEff.x = (b.node.width - BLOCK_SIZE) / 2
-                                iceEff.y = (b.node.height - BLOCK_SIZE) / 2
-                                break
-                            case 8:
-                            case 10:
-                            case 12:
-                            case 17:
-                            case 19:
-                                iceEff.x = (b.node.width + BLOCK_SIZE) / 2
-                                iceEff.y = (b.node.height + BLOCK_SIZE) / 2
-                                break
-                            case 21:
-                                iceEff.x = (b.node.width - BLOCK_SIZE * 2) / 2
-                                iceEff.y = (b.node.height - BLOCK_SIZE * 2) / 2
-                                break
-                            case 22:
-                                iceEff.x = (b.node.width + BLOCK_SIZE * 2) / 2
-                                iceEff.y = (b.node.height + BLOCK_SIZE * 2) / 2
-                                break;
-                        }
+                        this.setPositionEffect(b, iceEff);
                         const iceParticle = iceEff.getComponent(cc.ParticleSystem)
-                        iceParticle.resetSystem()
+                        iceParticle.resetSystem();
 
-                        b.setCount(b.ice - 1);
+                        // Xóa node effect sau khi particle kết thúc
+                        this.scheduleOnce(() => {
+                            iceEff.destroy();
+                        }, iceParticle.duration + iceParticle.life);
+
+                        b.setCountIce(b.ice - 1);
                     }
                 })
 
@@ -733,6 +701,48 @@ export default class BJStage extends cc.Component {
         return false;
     }
 
+    setPositionEffect(block: BJBlock, eff: cc.Node) {
+        switch (block.typeIndex) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                eff.x = block.node.width / 2
+                eff.y = block.node.height / 2
+                break
+            case 7:
+            case 9:
+            case 11:
+            case 18:
+            case 20:
+                eff.x = (block.node.width - BLOCK_SIZE) / 2
+                eff.y = (block.node.height - BLOCK_SIZE) / 2
+                break
+            case 8:
+            case 10:
+            case 12:
+            case 17:
+            case 19:
+                eff.x = (block.node.width + BLOCK_SIZE) / 2
+                eff.y = (block.node.height + BLOCK_SIZE) / 2
+                break
+            case 21:
+                eff.x = (block.node.width - BLOCK_SIZE * 2) / 2
+                eff.y = (block.node.height - BLOCK_SIZE * 2) / 2
+                break
+            case 22:
+                eff.x = (block.node.width + BLOCK_SIZE * 2) / 2
+                eff.y = (block.node.height + BLOCK_SIZE * 2) / 2
+                break;
+        }
+    }
+
     checkGame() {
         if (this.blockClearNum >= this.blockTotalNum) {
             StaticInstance.gameManager.onGameOver(ENUM_UI_TYPE.WIN)
@@ -752,6 +762,7 @@ export default class BJStage extends cc.Component {
     onSkill() {
         if (DataManager.instance.currentSkillIndex == 2) {
             AudioManager.instance.playSound(ENUM_AUDIO_CLIP.DING)
+            this.resumeBomb();
             cc.Tween.stopAllByTarget(this.timeLabel.node)
             const act_time = cc.sequence(cc.scaleTo(0.1, 1.2), cc.scaleTo(0.1, 1))
             cc.tween(this.timeLabel.node).then(act_time).start()
@@ -800,5 +811,23 @@ export default class BJStage extends cc.Component {
             this.guide.children[0].active = false
             this.guide.children[1].active = false
         }
+    }
+
+    pauseBomb() {
+        const blockCompArr = this.blockRootNode.getComponentsInChildren(BJBlock)
+        blockCompArr.forEach(b => {
+            if (b.bomb > 0) {
+                b.pauseBombCountdown();
+            }
+        })
+    }
+
+    resumeBomb() {
+        const blockCompArr = this.blockRootNode.getComponentsInChildren(BJBlock)
+        blockCompArr.forEach(b => {
+            if (b.bomb > 0) {
+                b.resumeBombCountdown();
+            }
+        })
     }
 }
