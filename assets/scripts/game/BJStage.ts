@@ -13,7 +13,7 @@ import DataManager, { BLOCK_COLOR, BLOCK_GAP, BLOCK_SIZE } from "../manager/BJDa
 import PoolManager from "../manager/BJPoolManager";
 import BJResourceManager from "../manager/BJResourceManager";
 import ResourceManager from "../manager/BJResourceManager";
-import BJBlock from "./BJBlock";
+import BJBlock, { BLOCK_TYPE } from "./BJBlock";
 import BJExit from "./BJExit";
 import { BJLevelConfig } from "./BJLevelConfig";
 
@@ -63,19 +63,18 @@ export default class BJStage extends cc.Component {
         if (dataLevel && !Array.isArray(dataLevel)) {
             dataLevel = Object.values(dataLevel);
         }
-
         let levelConfig = null;
         if (Array.isArray(dataLevel)) {
             levelConfig = dataLevel.find((item: any) => item.level == DataManager.instance.level)
-                || dataLevel[DataManager.instance.level - 1];
-            // levelConfig = BJLevelConfig[0];          //BJLevelConfig để lấy data test
+                || dataLevel[DataManager.instance.level];
+            levelConfig = BJLevelConfig[0];          //BJLevelConfig để lấy data test
         } else {
             levelConfig = null;
         }
 
         cc.log('levelConfig:', levelConfig);
         if (!levelConfig) {
-            const tempLevel = getRandom(0, dataLevel.length - 1)
+            const tempLevel = getRandom(1, dataLevel.length - 1)
             levelConfig = dataLevel[tempLevel]
         }
 
@@ -282,22 +281,12 @@ export default class BJStage extends cc.Component {
             const matches = data['icon'].match(/(\d+)_(\d+)$/);
             const typeIndex = parseInt(matches[1]);
             const colorIndex = parseInt(matches[2]);
-            let dir = 0
-            if (typeof data.dir == 'string') {
-                dir = parseInt(data.dir)
-            } else {
-                dir = data.dir
-            }
-            blockComp.init({
-                index: i,
-                typeIndex,
-                colorIndex,
-                x: data.x,
-                y: data.y,
-                dir,
-                ice: data.ice,
-                bomb: data.bomb
-            })
+            cc.log('initBlock:', i, data, typeIndex, colorIndex);
+
+            data.index = i;
+            data.typeIndex = typeIndex;
+            data.colorIndex = colorIndex;
+            blockComp.init(data);
         }
     }
 
@@ -606,7 +595,7 @@ export default class BJStage extends cc.Component {
 
                 const blockCompArr = this.blockRootNode.getComponentsInChildren(BJBlock)
                 blockCompArr.forEach(b => {
-                    if (b.ice > 0) {
+                    if (b.typeBlock === BLOCK_TYPE.ICE && b.properties.count > 0) {
                         const iceEff = PoolManager.instance.getNode('eff_ice', b.node)
                         this.setPositionEffect(b, iceEff);
                         const iceParticle = iceEff.getComponent(cc.ParticleSystem)
@@ -617,7 +606,7 @@ export default class BJStage extends cc.Component {
                             iceEff.destroy();
                         }, iceParticle.duration + iceParticle.life);
 
-                        b.setCountIce(b.ice - 1);
+                        b.setCountIce(b.properties.count - 1);
                     }
                 })
 
@@ -831,7 +820,7 @@ export default class BJStage extends cc.Component {
     pauseBomb() {
         const blockCompArr = this.blockRootNode.getComponentsInChildren(BJBlock)
         blockCompArr.forEach(b => {
-            if (b.bomb > 0) {
+            if (b.typeBlock === BLOCK_TYPE.BOMB && b.properties.count > 0) {
                 b.pauseBombCountdown();
             }
         })
@@ -840,7 +829,7 @@ export default class BJStage extends cc.Component {
     resumeBomb() {
         const blockCompArr = this.blockRootNode.getComponentsInChildren(BJBlock)
         blockCompArr.forEach(b => {
-            if (b.bomb > 0) {
+            if (b.typeBlock === BLOCK_TYPE.BOMB && b.properties.count > 0) {
                 b.resumeBombCountdown();
             }
         })

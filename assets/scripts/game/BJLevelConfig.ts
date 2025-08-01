@@ -14,13 +14,16 @@ export const BJLevelConfig = [
                 "icon": "PA_Grid_9_8",
                 "x": 0,
                 "y": 1,
-                "dir": 0
+                "type": 3,
+                "properties": {
+                    "count": 12,
+                }
             },
             {
                 "icon": "PA_Grid_8_1",
                 "x": 2,
                 "y": 2,
-                "dir": 0
+                "type": 5,
             }
         ],
         "exits": [
@@ -58,7 +61,7 @@ export const BJLevelConfig = [
                 "icon": "PA_Grid_4_10",
                 "x": 2,
                 "y": 2,
-                "dir": "2"
+                "dir": 2
             }
         ],
         "exits": [

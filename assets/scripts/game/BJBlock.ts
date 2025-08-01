@@ -14,16 +14,29 @@ import PoolManager from "../manager/BJPoolManager";
 import StaticInstance from "../BJStaticInstance";
 
 const { ccclass, property } = cc._decorator;
+export enum BLOCK_TYPE {
+    NORMAL = 0,
+    DIR = 1,
+    ICE = 2,
+    BOMB = 3,
+    CHAIN = 4,
+    KEY = 5
+}
 
 export type BlockData = {
-    index: number;
+    index: number
     typeIndex: number;
     colorIndex: number;
     x: number;
     y: number;
-    dir?: number;
-    ice?: number;
-    bomb?: number;
+    type: BLOCK_TYPE;
+    properties: {
+        count: number,
+        combine?: {
+            type: BLOCK_TYPE,
+            properties: {}
+        },
+    }
 }
 @ccclass
 export default class BJBlock extends cc.Component {
@@ -33,13 +46,14 @@ export default class BJBlock extends cc.Component {
     colorIndex: number = -1
     xIndex: number = -1
     yIndex: number = -1
-    dir: number = -1
-    ice: number = -1
-    bomb: number = -1
+    typeBlock: BLOCK_TYPE = BLOCK_TYPE.NORMAL
+    properties = null
     maskNode: cc.Node = null
     dirNode: cc.Node = null
     bombNode: cc.Node = null
     iceNode: cc.Node = null
+    chainNode: cc.Node = null
+    keyNode: cc.Node = null
     sprite: cc.Sprite = null
     material: cc.Material = null
     materialActive: cc.Material = null
@@ -48,6 +62,7 @@ export default class BJBlock extends cc.Component {
 
     private isSelected: boolean = false;
     private isLocked: boolean = false;
+    private isChained: boolean = false;
     private touchOffset: cc.Vec2 = cc.Vec2.ZERO;
     private originalPos: cc.Vec2 = cc.Vec2.ZERO;
     private initPos: cc.Vec2 = cc.Vec2.ZERO;
@@ -59,6 +74,8 @@ export default class BJBlock extends cc.Component {
         this.dirNode = this.node.getChildByName('icon_dir')
         this.iceNode = this.node.getChildByName('icon_ice')
         this.bombNode = this.node.getChildByName('icon_bomb')
+        this.chainNode = this.node.getChildByName('icon_chain')
+        this.keyNode = this.node.getChildByName('icon_key')
         this.sprite = this.maskNode.getChildByName('icon').getComponent(cc.Sprite)
         this.colliderComp = this.node.getComponent(cc.BoxCollider)
         const materials = this.sprite.getMaterials()
@@ -73,18 +90,36 @@ export default class BJBlock extends cc.Component {
     }
 
     init(data: BlockData) {
-        this.index = data.index
-        this.typeIndex = data.typeIndex
-        this.colorIndex = data.colorIndex
-        this.xIndex = data.x
-        this.yIndex = data.y
-        this.dir = data.dir
-        this.ice = data.ice ?? 0;
-        this.bomb = data.bomb ?? 0;
+        this.index = data.index;
+        this.typeIndex = data.typeIndex;
+        this.colorIndex = data.colorIndex;
+        this.xIndex = data.x;
+        this.yIndex = data.y;
+        this.typeBlock = data.type;
+        this.properties = data.properties;
+
         this.initSprite()
-        this.initDir()
-        this.initIce()
-        this.initBomb()
+        switch (this.typeBlock) {
+            case BLOCK_TYPE.NORMAL:
+                break;
+            case BLOCK_TYPE.DIR:
+                this.initDir();
+                break;
+            case BLOCK_TYPE.ICE:
+                this.initIce();
+                break;
+            case BLOCK_TYPE.BOMB:
+                this.initBomb();
+                break;
+            case BLOCK_TYPE.CHAIN:
+                this.initChain();
+                break;
+            case BLOCK_TYPE.KEY:
+                this.initKey();
+                break;
+            default: break;
+        }
+
         // 初始化位置信息
         this.initPos = cc.v2(this.node.position.clone());
     }
@@ -206,9 +241,9 @@ export default class BJBlock extends cc.Component {
     }
 
     initDir() {
-        if (this.dir == 0) {
+        if (this.properties.count == 0) {
             this.dirNode.active = false
-        } else if (this.dir == 1) {
+        } else if (this.properties.count == 1) {
             // 垂直
             this.dirNode.active = true
             this.dirNode.height = this.node.height
@@ -246,7 +281,7 @@ export default class BJBlock extends cc.Component {
                     this.dirNode.x = (this.node.width - this.dirNode.width + BLOCK_SIZE * 2) / 2
                     break
             }
-        } else if (this.dir == 2) {
+        } else if (this.properties.count == 2) {
             // 水平
             this.dirNode.active = true
             this.dirNode.width = this.node.width
@@ -285,7 +320,7 @@ export default class BJBlock extends cc.Component {
                     break
             }
         }
-        this.dirNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Up_Down_1_${this.dir}`)
+        this.dirNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Up_Down_1_${this.properties.count}`)
     }
 
     hideDir() {
@@ -293,65 +328,60 @@ export default class BJBlock extends cc.Component {
     }
 
     initIce() {
-        if (this.ice == 0) {
-            this.iceNode.active = false;
-            this.isLocked = false;
-        } else {
-            this.iceNode.active = true;
-            this.isLocked = true;
-            const countNode = this.iceNode.getChildByName("count");
-            countNode.getComponent(cc.Label).string = `${this.ice}`;
-            this.iceNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`);
-            this.iceNode.color = cc.Color.BLACK;
-            this.iceNode.opacity = 150;
-            switch (this.typeIndex) {
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 13:
-                case 14:
-                case 15:
-                case 16:
-                    countNode.x = this.node.width / 2
-                    countNode.y = this.node.height / 2
-                    break
-                case 7:
-                case 9:
-                case 11:
-                case 18:
-                case 20:
-                    countNode.x = (this.node.width - BLOCK_SIZE) / 2
-                    countNode.y = (this.node.height - BLOCK_SIZE) / 2
-                    break
-                case 8:
-                case 10:
-                case 12:
-                case 17:
-                case 19:
-                    countNode.x = (this.node.width + BLOCK_SIZE) / 2
-                    countNode.y = (this.node.height + BLOCK_SIZE) / 2
-                    break
-                case 21:
-                    countNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
-                    countNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
-                    break
-                case 22:
-                    countNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
-                    countNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
-                    break
-            }
+        this.iceNode.active = true;
+        this.isLocked = true;
+        const countNode = this.iceNode.getChildByName("count");
+        countNode.getComponent(cc.Label).string = `${this.properties.count}`;
+        this.iceNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`);
+        this.iceNode.color = cc.Color.BLACK;
+        this.iceNode.opacity = 150;
+        switch (this.typeIndex) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                countNode.x = this.node.width / 2
+                countNode.y = this.node.height / 2
+                break
+            case 7:
+            case 9:
+            case 11:
+            case 18:
+            case 20:
+                countNode.x = (this.node.width - BLOCK_SIZE) / 2
+                countNode.y = (this.node.height - BLOCK_SIZE) / 2
+                break
+            case 8:
+            case 10:
+            case 12:
+            case 17:
+            case 19:
+                countNode.x = (this.node.width + BLOCK_SIZE) / 2
+                countNode.y = (this.node.height + BLOCK_SIZE) / 2
+                break
+            case 21:
+                countNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                countNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                break
+            case 22:
+                countNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                countNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                break
         }
     }
 
     setCountIce(count: number) {
-        this.ice = count;
+        this.properties.count = count;
         const countNode = this.iceNode.getChildByName("count");
-        countNode.getComponent(cc.Label).string = `${this.ice}`;
+        countNode.getComponent(cc.Label).string = `${this.properties.count}`;
 
-        if (this.ice <= 0) {
+        if (this.properties.count <= 0) {
             this.hideIce();
             this.isLocked = false;
         }
@@ -362,53 +392,48 @@ export default class BJBlock extends cc.Component {
     }
 
     initBomb() {
-        if (this.bomb == 0) {
-            this.bombNode.active = false;
-            this.stopBombCountdown();
-        } else {
-            this.bombNode.active = true;
-            const countNode = this.bombNode.getChildByName("count");
-            countNode.getComponent(cc.Label).string = `${this.bomb}`;
-            this.startBombCountdown();
-            switch (this.typeIndex) {
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 13:
-                case 14:
-                case 15:
-                case 16:
-                    this.bombNode.x = this.node.width / 2
-                    this.bombNode.y = this.node.height / 2
-                    break
-                case 7:
-                case 9:
-                case 11:
-                case 18:
-                case 20:
-                    this.bombNode.x = (this.node.width - BLOCK_SIZE) / 2
-                    this.bombNode.y = (this.node.height - BLOCK_SIZE) / 2
-                    break
-                case 8:
-                case 10:
-                case 12:
-                case 17:
-                case 19:
-                    this.bombNode.x = (this.node.width + BLOCK_SIZE) / 2
-                    this.bombNode.y = (this.node.height + BLOCK_SIZE) / 2
-                    break
-                case 21:
-                    this.bombNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
-                    this.bombNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
-                    break
-                case 22:
-                    this.bombNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
-                    this.bombNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
-                    break
-            }
+        this.bombNode.active = true;
+        const countNode = this.bombNode.getChildByName("count");
+        countNode.getComponent(cc.Label).string = `${this.properties.count}`;
+        this.startBombCountdown();
+        switch (this.typeIndex) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                this.bombNode.x = this.node.width / 2
+                this.bombNode.y = this.node.height / 2
+                break
+            case 7:
+            case 9:
+            case 11:
+            case 18:
+            case 20:
+                this.bombNode.x = (this.node.width - BLOCK_SIZE) / 2
+                this.bombNode.y = (this.node.height - BLOCK_SIZE) / 2
+                break
+            case 8:
+            case 10:
+            case 12:
+            case 17:
+            case 19:
+                this.bombNode.x = (this.node.width + BLOCK_SIZE) / 2
+                this.bombNode.y = (this.node.height + BLOCK_SIZE) / 2
+                break
+            case 21:
+                this.bombNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                this.bombNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                break
+            case 22:
+                this.bombNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                this.bombNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                break
         }
     }
 
@@ -417,9 +442,9 @@ export default class BJBlock extends cc.Component {
         // Nếu đã có timer thì không tạo mới
         if (this.bombTimer !== null) return;
         this.bombTimer = setInterval(() => {
-            this.bomb -= 1;
-            this.setCountBomb(this.bomb);
-            if (this.bomb <= 0) {
+            this.properties.count -= 1;
+            this.setCountBomb(this.properties.count);
+            if (this.properties.count <= 0) {
                 StaticInstance.gameManager.onGameOver(ENUM_UI_TYPE.REVIVE_TIMER)
 
                 const bombEff = PoolManager.instance.getNode('eff_bomb', this.node)
@@ -455,24 +480,116 @@ export default class BJBlock extends cc.Component {
     }
 
     resumeBombCountdown() {
-        if (this.bombPaused && this.bomb > 0 && this.bombTimer === null) {
+        if (this.bombPaused && this.properties.count > 0 && this.bombTimer === null) {
             this.bombPaused = false;
             this.startBombCountdown();
         }
     }
 
     setCountBomb(count: number) {
-        this.bomb = count;
+        this.properties.count = count;
         const countNode = this.bombNode.getChildByName("count");
-        countNode.getComponent(cc.Label).string = `${this.bomb}`;
+        countNode.getComponent(cc.Label).string = `${this.properties.count}`;
 
-        if (this.bomb <= 0) {
+        if (this.properties.count <= 0) {
             this.hideBomb();
         }
     }
 
     hideBomb() {
         this.bombNode.active = false
+    }
+
+    initChain() {
+        this.chainNode.active = true;
+        this.isChained = true;
+        const countNode = this.chainNode.getChildByName("lock").getChildByName("count");
+        countNode.getComponent(cc.Label).string = `${this.properties.count}`;
+        switch (this.typeIndex) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                this.chainNode.x = this.node.width / 2
+                this.chainNode.y = this.node.height / 2
+                break
+            case 7:
+            case 9:
+            case 11:
+            case 18:
+            case 20:
+                this.chainNode.x = (this.node.width - BLOCK_SIZE) / 2
+                this.chainNode.y = (this.node.height - BLOCK_SIZE) / 2
+                break
+            case 8:
+            case 10:
+            case 12:
+            case 17:
+            case 19:
+                this.chainNode.x = (this.node.width + BLOCK_SIZE) / 2
+                this.chainNode.y = (this.node.height + BLOCK_SIZE) / 2
+                break
+            case 21:
+                this.chainNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                this.chainNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                break
+            case 22:
+                this.chainNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                this.chainNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                break
+            default: break;
+        }
+    }
+
+    initKey() {
+        this.keyNode.active = true;
+        switch (this.typeIndex) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                this.keyNode.x = this.node.width / 2
+                this.keyNode.y = this.node.height / 2
+                break
+            case 7:
+            case 9:
+            case 11:
+            case 18:
+            case 20:
+                this.keyNode.x = (this.node.width - BLOCK_SIZE) / 2
+                this.keyNode.y = (this.node.height - BLOCK_SIZE) / 2
+                break
+            case 8:
+            case 10:
+            case 12:
+            case 17:
+            case 19:
+                this.keyNode.x = (this.node.width + BLOCK_SIZE) / 2
+                this.keyNode.y = (this.node.height + BLOCK_SIZE) / 2
+                break
+            case 21:
+                this.keyNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                this.keyNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                break
+            case 22:
+                this.keyNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                this.keyNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                break
+            default: break;
+
+        }
     }
 
     changeColor() {
@@ -486,7 +603,7 @@ export default class BJBlock extends cc.Component {
 
     // 触摸开始
     private onTouchStart(event: cc.Event.EventTouch) {
-        if (this.isLocked) return;
+        if (this.isLocked || this.isChained) return;
         // if (DataManager.instance.currentSelectBlock) return
         if (DataManager.instance.status == ENUM_GAME_STATUS.UNRUNING) return
 
@@ -555,7 +672,7 @@ export default class BJBlock extends cc.Component {
 
     // 动态调整边界的移动逻辑
     private onTouchMove(event: cc.Event.EventTouch) {
-        if (this.isLocked) return;
+        if (this.isLocked || this.isChained) return;
         if (DataManager.instance.status == ENUM_GAME_STATUS.UNRUNING) return
         if (DataManager.instance.currentSelectBlock == null) return
         if (!DataManager.instance.currentSelectBlock.isSelected) return;
@@ -581,11 +698,13 @@ export default class BJBlock extends cc.Component {
         const worldMaxY = minY + dynamicBounds.maxRow * (BLOCK_SIZE + BLOCK_GAP);
 
         // 限制位置在动态边界内
-        if (DataManager.instance.currentSelectBlock.dir == 1) {
+        if (DataManager.instance.currentSelectBlock.typeBlock == BLOCK_TYPE.DIR
+            && DataManager.instance.currentSelectBlock.properties.count == 1) {
             // cc.log(DataManager.instance.currentSelectBlock.initPos.x, DataManager.instance.currentSelectBlock.originalPos.x)
             newPos.x = DataManager.instance.currentSelectBlock.initPos.x; // 保持原始x位置
             newPos.y = cc.misc.clampf(newPos.y, worldMinY, worldMaxY);
-        } else if (DataManager.instance.currentSelectBlock.dir == 2) {
+        } else if (DataManager.instance.currentSelectBlock.typeBlock == BLOCK_TYPE.DIR
+            && DataManager.instance.currentSelectBlock.properties.count == 2) {
             // cc.log(DataManager.instance.currentSelectBlock.initPos.y, DataManager.instance.currentSelectBlock.originalPos.y)
             newPos.y = DataManager.instance.currentSelectBlock.initPos.y; // 保持原始y位置
             newPos.x = cc.misc.clampf(newPos.x, worldMinX, worldMaxX);
