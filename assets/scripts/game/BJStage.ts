@@ -607,7 +607,29 @@ export default class BJStage extends cc.Component {
 
                         b.setCountIce(b.properties.count - 1);
                     }
-                })
+
+                });
+
+                if (block.typeBlock === BLOCK_TYPE.KEY) {
+                    const chainBlock = blockCompArr.find(e => e.typeBlock === BLOCK_TYPE.CHAIN);
+                    if (chainBlock) {
+                        const iceEff = PoolManager.instance.getNode('eff_ice', chainBlock.node)
+                        this.setPositionEffect(chainBlock, iceEff);
+                        const iceParticle = iceEff.getComponent(cc.ParticleSystem)
+                        iceParticle.resetSystem();
+
+                        // Xóa node effect sau khi particle kết thúc
+                        this.scheduleOnce(() => {
+                            iceEff.destroy();
+                        }, iceParticle.duration + iceParticle.life);
+
+                        chainBlock.setCountChain(chainBlock.properties.count - 1);
+                    }
+                }
+
+                if (block.typeBlock === BLOCK_TYPE.BOMB) {
+                    block.stopBombCountdown();
+                }
 
                 if (DataManager.instance.level == 1) {
                     this.guideStep += 1

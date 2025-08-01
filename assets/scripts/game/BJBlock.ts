@@ -240,6 +240,48 @@ export default class BJBlock extends cc.Component {
         this.sprite.spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`)
     }
 
+    setPositionNodeCenter(node: cc.Node) {
+        switch (this.typeIndex) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+            case 6:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+                node.x = this.node.width / 2
+                node.y = this.node.height / 2
+                break
+            case 7:
+            case 9:
+            case 11:
+            case 18:
+            case 20:
+                node.x = (this.node.width - BLOCK_SIZE) / 2
+                node.y = (this.node.height - BLOCK_SIZE) / 2
+                break
+            case 8:
+            case 10:
+            case 12:
+            case 17:
+            case 19:
+                node.x = (this.node.width + BLOCK_SIZE) / 2
+                node.y = (this.node.height + BLOCK_SIZE) / 2
+                break
+            case 21:
+                node.x = (this.node.width - BLOCK_SIZE * 2) / 2
+                node.y = (this.node.height - BLOCK_SIZE * 2) / 2
+                break
+            case 22:
+                node.x = (this.node.width + BLOCK_SIZE * 2) / 2
+                node.y = (this.node.height + BLOCK_SIZE * 2) / 2
+                break;
+        }
+    }
+
     initDir() {
         if (this.properties.count == 0) {
             this.dirNode.active = false
@@ -335,45 +377,7 @@ export default class BJBlock extends cc.Component {
         this.iceNode.getComponent(cc.Sprite).spriteFrame = ResourceManager.instance.getSprite(`PA_Grid_${this.typeIndex}_${this.colorIndex}`);
         this.iceNode.color = cc.Color.BLACK;
         this.iceNode.opacity = 150;
-        switch (this.typeIndex) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-                countNode.x = this.node.width / 2
-                countNode.y = this.node.height / 2
-                break
-            case 7:
-            case 9:
-            case 11:
-            case 18:
-            case 20:
-                countNode.x = (this.node.width - BLOCK_SIZE) / 2
-                countNode.y = (this.node.height - BLOCK_SIZE) / 2
-                break
-            case 8:
-            case 10:
-            case 12:
-            case 17:
-            case 19:
-                countNode.x = (this.node.width + BLOCK_SIZE) / 2
-                countNode.y = (this.node.height + BLOCK_SIZE) / 2
-                break
-            case 21:
-                countNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
-                countNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
-                break
-            case 22:
-                countNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
-                countNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
-                break
-        }
+        this.setPositionNodeCenter(countNode);
     }
 
     setCountIce(count: number) {
@@ -396,45 +400,7 @@ export default class BJBlock extends cc.Component {
         const countNode = this.bombNode.getChildByName("count");
         countNode.getComponent(cc.Label).string = `${this.properties.count}`;
         this.startBombCountdown();
-        switch (this.typeIndex) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-                this.bombNode.x = this.node.width / 2
-                this.bombNode.y = this.node.height / 2
-                break
-            case 7:
-            case 9:
-            case 11:
-            case 18:
-            case 20:
-                this.bombNode.x = (this.node.width - BLOCK_SIZE) / 2
-                this.bombNode.y = (this.node.height - BLOCK_SIZE) / 2
-                break
-            case 8:
-            case 10:
-            case 12:
-            case 17:
-            case 19:
-                this.bombNode.x = (this.node.width + BLOCK_SIZE) / 2
-                this.bombNode.y = (this.node.height + BLOCK_SIZE) / 2
-                break
-            case 21:
-                this.bombNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
-                this.bombNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
-                break
-            case 22:
-                this.bombNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
-                this.bombNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
-                break
-        }
+        this.setPositionNodeCenter(this.bombNode);
     }
 
     private bombTimer: number = null;
@@ -505,91 +471,28 @@ export default class BJBlock extends cc.Component {
         this.isChained = true;
         const countNode = this.chainNode.getChildByName("lock").getChildByName("count");
         countNode.getComponent(cc.Label).string = `${this.properties.count}`;
-        switch (this.typeIndex) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-                this.chainNode.x = this.node.width / 2
-                this.chainNode.y = this.node.height / 2
-                break
-            case 7:
-            case 9:
-            case 11:
-            case 18:
-            case 20:
-                this.chainNode.x = (this.node.width - BLOCK_SIZE) / 2
-                this.chainNode.y = (this.node.height - BLOCK_SIZE) / 2
-                break
-            case 8:
-            case 10:
-            case 12:
-            case 17:
-            case 19:
-                this.chainNode.x = (this.node.width + BLOCK_SIZE) / 2
-                this.chainNode.y = (this.node.height + BLOCK_SIZE) / 2
-                break
-            case 21:
-                this.chainNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
-                this.chainNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
-                break
-            case 22:
-                this.chainNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
-                this.chainNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
-                break
-            default: break;
+        this.setPositionNodeCenter(this.chainNode);
+
+    }
+
+    setCountChain(count: number) {
+        this.properties.count = count;
+        const countNode = this.chainNode.getChildByName("lock").getChildByName("count");
+        countNode.getComponent(cc.Label).string = `${this.properties.count}`;
+
+        if (this.properties.count <= 0) {
+            this.hideChain();
+            this.isChained = false;
         }
+    }
+
+    hideChain() {
+        this.chainNode.active = false;
     }
 
     initKey() {
         this.keyNode.active = true;
-        switch (this.typeIndex) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 13:
-            case 14:
-            case 15:
-            case 16:
-                this.keyNode.x = this.node.width / 2
-                this.keyNode.y = this.node.height / 2
-                break
-            case 7:
-            case 9:
-            case 11:
-            case 18:
-            case 20:
-                this.keyNode.x = (this.node.width - BLOCK_SIZE) / 2
-                this.keyNode.y = (this.node.height - BLOCK_SIZE) / 2
-                break
-            case 8:
-            case 10:
-            case 12:
-            case 17:
-            case 19:
-                this.keyNode.x = (this.node.width + BLOCK_SIZE) / 2
-                this.keyNode.y = (this.node.height + BLOCK_SIZE) / 2
-                break
-            case 21:
-                this.keyNode.x = (this.node.width - BLOCK_SIZE * 2) / 2
-                this.keyNode.y = (this.node.height - BLOCK_SIZE * 2) / 2
-                break
-            case 22:
-                this.keyNode.x = (this.node.width + BLOCK_SIZE * 2) / 2
-                this.keyNode.y = (this.node.height + BLOCK_SIZE * 2) / 2
-                break
-            default: break;
-
-        }
+        this.setPositionNodeCenter(this.keyNode);
     }
 
     changeColor() {

@@ -7,37 +7,109 @@
 
 export const BJLevelConfig = [
     {
-        "rowNum": 5,
-        "colNum": 4,
+        "rowNum": 6,
+        "colNum": 6,
         "blocks": [
             {
-                "icon": "PA_Grid_9_8",
+                "icon": "PA_Grid_3_10",
                 "x": 0,
-                "y": 1,
-                "type": 3,
+                "y": 0,
+                "type": 4,
                 "properties": {
-                    "count": 12,
+                    "count": 3
                 }
             },
             {
-                "icon": "PA_Grid_8_1",
+                "icon": "PA_Grid_7_5",
+                "x": 3,
+                "y": 0,
+                "type": 0
+            },
+            {
+                "icon": "PA_Grid_2_1",
+                "x": 1,
+                "y": 1,
+                "type": 1,
+                "properties": {
+                    "count": 2
+                }
+            },
+            {
+                "icon": "PA_Grid_2_10",
+                "x": 0,
+                "y": 2,
+                "type": 0
+            },
+            {
+                "icon": "PA_Grid_19_6",
                 "x": 2,
                 "y": 2,
-                "type": 5,
+                "type": 0
+            },
+            {
+                "icon": "PA_Grid_1_7",
+                "x": 2,
+                "y": 2,
+                "type": 3,
+                "properties": {
+                    "count": 20
+                }
+            },
+            {
+                "icon": "PA_Grid_1_7",
+                "x": 2,
+                "y": 3,
+                "type": 5
+            },
+            {
+                "icon": "PA_Grid_6_9",
+                "x": 4,
+                "y": 3,
+                "type": 5
+            },
+            {
+                "icon": "PA_Grid_2_10",
+                "x": 0,
+                "y": 5,
+                "type": 5
             }
         ],
         "exits": [
             {
-                "icon": "PA_Machine_3_8_1_1",
+                "icon": "PA_Machine_3_7_1_1",
                 "x": 0,
+                "y": 0,
+                "size": 1
+            },
+            {
+                "icon": "PA_Machine_3_6_1_1",
+                "x": 2,
                 "y": 0,
                 "size": 2
             },
             {
-                "icon": "PA_Machine_1_1_1_1",
-                "x": 2,
-                "y": 4,
+                "icon": "PA_Machine_2_1_1_1",
+                "x": 5,
+                "y": 1,
+                "size": 1
+            },
+            {
+                "icon": "PA_Machine_2_10_1_1",
+                "x": 5,
+                "y": 2,
+                "size": 3
+            },
+            {
+                "icon": "PA_Machine_4_5_1_1",
+                "x": 0,
+                "y": 3,
                 "size": 2
+            },
+            {
+                "icon": "PA_Machine_1_9_1_1",
+                "x": 3,
+                "y": 5,
+                "size": 3
             }
         ]
     },
