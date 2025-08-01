@@ -444,7 +444,10 @@
 				"icon": "PA_Grid_4_9",
 				"x": 2,
 				"y": 2,
-				"type": 0
+				"type": 3,
+				"properties": {
+					"count": 12
+				}
 			},
 			{
 				"icon": "PA_Grid_6_7",

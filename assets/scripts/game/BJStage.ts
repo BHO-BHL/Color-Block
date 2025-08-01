@@ -58,24 +58,24 @@ export default class BJStage extends cc.Component {
         this.toggleSkillTip(false)
 
         this.levelLabel.string = `第${DataManager.instance.level}关`
-        let dataLevel = BJResourceManager.instance.getJson("level");
+        let dataLevel = BJResourceManager.instance.jsonMap;
 
         if (dataLevel && !Array.isArray(dataLevel)) {
             dataLevel = Object.values(dataLevel);
         }
         let levelConfig = null;
         if (Array.isArray(dataLevel)) {
-            levelConfig = dataLevel.find((item: any) => item.level == DataManager.instance.level)
-                || dataLevel[DataManager.instance.level];
+            levelConfig = dataLevel[0][DataManager.instance.level]  // dataLevel[0] là mảng chứa các cấp độ, lấy cấp độ hiện tại
             levelConfig = BJLevelConfig[0];          //BJLevelConfig để lấy data test
+            levelConfig = JSON.parse(JSON.stringify(levelConfig));
         } else {
             levelConfig = null;
         }
 
         cc.log('levelConfig:', levelConfig);
         if (!levelConfig) {
-            const tempLevel = getRandom(1, dataLevel.length - 1)
-            levelConfig = dataLevel[tempLevel]
+            const tempLevel = getRandom(1, dataLevel[0].length - 1)
+            levelConfig = dataLevel[0][tempLevel]
         }
 
         if (DataManager.instance.level == 1) {
@@ -282,7 +282,6 @@ export default class BJStage extends cc.Component {
             const typeIndex = parseInt(matches[1]);
             const colorIndex = parseInt(matches[2]);
             cc.log('initBlock:', i, data, typeIndex, colorIndex);
-
             data.index = i;
             data.typeIndex = typeIndex;
             data.colorIndex = colorIndex;
